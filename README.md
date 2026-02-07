@@ -6,13 +6,20 @@ MCP server that streams hand-drawn Excalidraw diagrams with smooth viewport came
 
 ## Install
 
-In [claude.ai](https://claude.ai):
+Works with any client that supports [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) — Claude, ChatGPT, VS Code, Goose, and others. If something doesn't work, please [open an issue](https://github.com/antonpk1/excalidraw-mcp-app/issues).
+
+### Remote (recommended)
+
+Add as a remote MCP server in your client. For example, in [claude.ai](https://claude.ai):
 
 1. Go to **Settings** → **Connectors** → **Add custom connector**
 2. Server URL: `https://excalidraw-mcp-app.vercel.app/mcp` :point_left:
 3. Done — start using Excalidraw in your conversations
 
-### Alternative: Local Server
+### Local
+
+<details>
+<summary>Download extension or build from source</summary>
 
 **Option A: Download Extension**
 
@@ -41,6 +48,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```
 
 Restart Claude Desktop.
+
+</details>
 
 ## Usage
 
