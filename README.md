@@ -64,26 +64,42 @@ Text responses can only go so far. Sometimes users need to interact with data, n
 - **Getting started for humans**: [documentation](https://modelcontextprotocol.io/docs/extensions/apps)
 - **Getting started for AIs**: [skill](https://github.com/modelcontextprotocol/ext-apps/blob/main/plugins/mcp-apps/skills/create-mcp-app/SKILL.md)
 
-<details>
-<summary>Releasing a New Version</summary>
+## Contributing
+
+PRs welcome! Here's how to get set up:
 
 ```bash
-# 1. Make changes, commit, push
-git add -A && git commit -m "..." && git push
+git clone https://github.com/antonpk1/excalidraw-mcp-app.git
+cd excalidraw-mcp-app
+npm install && npm run build
+```
 
-# 2. Bump version in manifest.json and package.json
+Run locally with `node dist/index.js` (HTTP on port 3001) or `node dist/index.js --stdio` (stdio for Claude Desktop).
 
-# 3. Rebuild
-npm run build
+### Deploy your own instance
 
-# 4. Pack the .mcpb bundle
-mcpb pack .
+You can deploy your own copy to Vercel in a few clicks:
 
-# 5. Create GitHub release with bundle attached
+1. Fork this repo
+2. Go to [vercel.com/new](https://vercel.com/new) and import your fork
+3. No environment variables needed — just deploy
+4. Your server will be at `https://your-project.vercel.app/mcp`
+
+### Release checklist
+
+<details>
+<summary>For maintainers</summary>
+
+```bash
+# 1. Bump version in manifest.json and package.json
+# 2. Build and pack
+npm run build && mcpb pack .
+
+# 3. Create GitHub release
 gh release create v0.3.0 excalidraw-mcp-app.mcpb --title "v0.3.0" --notes "What changed"
 
-# 6. Deploy to Vercel
-docker exec smithery bash -c 'cd /app && git pull && npx vercel --prod --yes'
+# 4. Deploy to Vercel
+vercel --prod
 ```
 
 </details>
