@@ -299,6 +299,62 @@ Every create_view call returns a \`checkpointId\` in its response. To continue f
 
 The saved state (including any user edits made in fullscreen) is loaded from the client, and your new elements are appended on top. This saves tokens — you don't need to re-send the entire diagram.
 
+## Deleting Elements
+
+Remove elements by id using the \`delete\` pseudo-element:
+
+\`{"type":"delete","ids":"b2,a1,t3"}\`
+
+Works in two modes:
+- **With restoreCheckpoint**: restore a saved state, then surgically remove specific elements before adding new ones
+- **Inline (animation mode)**: draw elements, then delete and replace them later in the same array to create transformation effects
+
+Place delete entries AFTER the elements you want to remove. The final render filters them out.
+
+## Animation Mode — Transform in Place
+
+Instead of building left-to-right and panning away, you can animate by DELETING elements and replacing them at the same position. Combined with slight camera moves, this creates smooth visual transformations during streaming.
+
+Pattern:
+1. Draw initial elements
+2. cameraUpdate (shift/zoom slightly)
+3. \`{"type":"delete","ids":"old1,old2"}\`
+4. Draw replacements at same coordinates (different color/content)
+5. Repeat
+
+Example prompt: "Show the lifecycle of a feature task"
+
+3 frames: TODO card (blue) → IN PROGRESS card (orange) → DONE card (green), each replacing the previous at the same position. Camera nudges between frames, then zooms out to reveal stats.
+
+\`\`\`json
+[
+  {"type":"cameraUpdate","width":400,"height":300,"x":80,"y":30},
+  {"type":"text","id":"hdr","x":155,"y":45,"text":"Sprint Board","fontSize":24,"strokeColor":"#1e1e1e"},
+  {"type":"rectangle","id":"c1","x":150,"y":100,"width":200,"height":90,"backgroundColor":"#a5d8ff","fillStyle":"solid","roundness":{"type":3},"strokeColor":"#4a9eed","label":{"text":"Add Login","fontSize":20}},
+  {"type":"text","id":"s1","x":210,"y":200,"text":"TODO","fontSize":16,"strokeColor":"#757575"},
+  {"type":"cameraUpdate","width":400,"height":300,"x":85,"y":35},
+  {"type":"delete","ids":"c1,s1"},
+  {"type":"rectangle","id":"c2","x":150,"y":100,"width":200,"height":90,"backgroundColor":"#ffd8a8","fillStyle":"solid","roundness":{"type":3},"strokeColor":"#f59e0b","label":{"text":"Add Login","fontSize":20}},
+  {"type":"text","id":"s2","x":185,"y":200,"text":"IN PROGRESS","fontSize":16,"strokeColor":"#f59e0b"},
+  {"type":"rectangle","id":"dev","x":380,"y":115,"width":80,"height":50,"backgroundColor":"#d0bfff","fillStyle":"solid","roundness":{"type":3},"strokeColor":"#8b5cf6","label":{"text":"dev","fontSize":16}},
+  {"type":"arrow","id":"a1","x":350,"y":145,"width":30,"height":0,"points":[[0,0],[30,0]],"strokeColor":"#8b5cf6","strokeWidth":2,"endArrowhead":"arrow"},
+  {"type":"cameraUpdate","width":600,"height":450,"x":30,"y":0},
+  {"type":"delete","ids":"c2,s2,dev,a1"},
+  {"type":"rectangle","id":"c3","x":150,"y":100,"width":200,"height":90,"backgroundColor":"#b2f2bb","fillStyle":"solid","roundness":{"type":3},"strokeColor":"#22c55e","label":{"text":"Add Login","fontSize":20}},
+  {"type":"text","id":"s3","x":215,"y":200,"text":"DONE","fontSize":18,"strokeColor":"#15803d"},
+  {"type":"arrow","id":"ck1","x":260,"y":240,"width":-10,"height":12,"points":[[0,0],[-10,12]],"strokeColor":"#15803d","strokeWidth":3,"endArrowhead":null},
+  {"type":"arrow","id":"ck2","x":250,"y":252,"width":18,"height":-24,"points":[[0,0],[18,-24]],"strokeColor":"#15803d","strokeWidth":3,"endArrowhead":null},
+  {"type":"rectangle","id":"stats","x":400,"y":110,"width":150,"height":60,"backgroundColor":"#c3fae8","fillStyle":"solid","roundness":{"type":3},"strokeColor":"#06b6d4","label":{"text":"1,234 users","fontSize":18}},
+  {"type":"arrow","id":"a2","x":350,"y":145,"width":50,"height":0,"points":[[0,0],[50,0]],"strokeColor":"#06b6d4","strokeWidth":2,"endArrowhead":"arrow"}
+]
+\`\`\`
+
+Key techniques:
+- Same x,y coordinates (150,100) reused across all 3 cards — creates illusion of transformation
+- Camera nudge (80,30 → 85,35) adds subtle motion between frames
+- Camera zoom out (400x300 → 600x450) reveals new elements in frame 3
+- Each frame deletes the previous card + accessories, then draws replacements
+
 ## Dark Mode
 
 If the user asks for a dark theme/mode diagram, use a massive dark background rectangle as the FIRST element (before cameraUpdate). Make it 10x the camera size so it covers the entire viewport even when panning:
@@ -392,7 +448,7 @@ However, if the user wants to edit something on this diagram "${checkpointId}", 
 2) decide whether you want to make new diagram from scratch OR - use this one as starting checkpoint:
   simply start from the first element [{"type":"restoreCheckpoint","id":"${checkpointId}"}, ...your new elements...]
   this will use same diagram state as the user currently sees, including any manual edits they made in fullscreen, allowing you to add elements on top.
-  To remove elements from the restored state, use: {"type":"deleteElement","id":"<elementId>"}` }],
+  To remove elements, use: {"type":"delete","ids":"<id1>,<id2>"}` }],
         structuredContent: { checkpointId },
       };
     },
